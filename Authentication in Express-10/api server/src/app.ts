@@ -3,13 +3,14 @@ import express from 'express';
 import '#db';
 import { errorHandler, notFoundHandler } from '#middleware';
 import { postRoutes } from '#routes';
-import { PORT } from '#config';
 
+import { PORT, CLIENT_BASE_URL, AUTH_BASE_URL } from '#config';
 const app = express();
 
 app.use(
   cors({
-    origin: '*',
+    origin: [CLIENT_BASE_URL, AUTH_BASE_URL], // for use with credentials, origin(s) need to be specified
+    credentials: true, // sends and receives secure cookies
     exposedHeaders: ['WWW-Authenticate'] // needed to send the 'refresh trigger''
   })
 );

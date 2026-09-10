@@ -75,11 +75,14 @@ export const login: RequestHandler = async (req, res) => {
 };
 
 export const refresh: RequestHandler = async (req, res) => {
-  const oldrRefreshToken = await RefreshToken.findOne({ token: req.cookies.refreshToken });
+  const { refreshToken } = req.cookies;
 
-  if (!oldrRefreshToken) throw new Error('Refresh Token Not Found', { cause: { status: 401 } });
+  if (!refreshToken) throw new Error('Refresh token is required.', { cause: { status: 401 } });
+  const oldRefreshToken = await RefreshToken.findOne({ token: refreshToken });
 
-  const user = await User.findById(oldrRefreshToken.userId);
+  if (!oldRefreshToken) throw new Error('Refresh Token Not Found', { cause: { status: 401 } });
+
+  const user = await User.findById(oldRefreshToken.userId);
 
   if (!user) throw new Error('User Not Found', { cause: { status: 401 } });
 
@@ -94,9 +97,9 @@ export const refresh: RequestHandler = async (req, res) => {
 
   await RefreshToken.deleteOne({ userId: user._id });
 
-  const refreshToken = crypto.randomUUID();
+  const newRefreshToken = crypto.randomUUID();
 
-  await RefreshToken.create({ token: refreshToken, userId: user._id });
+  await RefreshToken.create({ token: newRefreshToken, userId: user._id });
 
   const isProduction = process.env.NODE_ENV === 'production';
   const cookieOptions = {
@@ -106,7 +109,7 @@ export const refresh: RequestHandler = async (req, res) => {
     maxAge: REFRESH_TOKEN_TTL * 1000
   };
 
-  res.cookie('refreshToken', refreshToken, cookieOptions).json({ accessToken });
+  res.cookie('refreshToken', newRefreshToken, cookieOptions).json({ accessToken });
 };
 
 export const logout: RequestHandler = async (req, res) => {
@@ -115,7 +118,8 @@ export const logout: RequestHandler = async (req, res) => {
   // If a refreshToken cookie is found, delete the corresponding stored token from the database
   // Clear the refreshToken cookie
   // Send a success message in the response body
-  res.json({ message: 'DELETE /refresh' });
+  res.clearCookie('refreshToken');
+  res.json({ message: 'Successfully logged out' });
 };
 
 export const me: RequestHandler = async (req, res, next) => {
@@ -128,15 +132,21 @@ export const me: RequestHandler = async (req, res, next) => {
     if (!accessToken) throw new Error('Access token is required.', { cause: { status: 401 } });
 
     const decoded = jwt.verify(accessToken, ACCESS_JWT_SECRET) as jwt.JwtPayload;
-    console.log('decodedToken', decoded.sub);
+    if (!decoded.sub)
+      throw new Error('Invalid or expired access token.', { cause: { status: 403 } });
+    // query the DB to find user by id that matches decoded.sub
+    const user = await User.findById(decoded.sub).lean();
 
+    // throw a 404 error if no user is found
+    if (!user) throw new Error('User not found', { cause: { status: 404 } });
+    // send generic success message and user info in response body
+    res.json({ message: 'Valid token', user });
     // TODO:
     //  4. Query the database for the user who is the `sub` of the access token
 
     //  4.1. Throw an error if no user is found
 
     // 5. Send user profile with success message in response body
-    res.json({ message: 'GET /me' });
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
       next(

@@ -21,11 +21,8 @@
     "module": "preserve", // Preserves ES module syntax (important for native ESM)
     "noEmit": false, // Enables output generation
     "rootDir": "./src", // Keeps emitted files rooted at src/
-    "outDir": "dist", // Output directory for compiled JavaScript
-    /* Paths */
-    "paths": {
-      "#*": ["./src/*"] // Defines internal path aliases with '#' to avoid conflict with '@'
-    }
+    "outDir": "dist",
+    "rootDir": "./src"
   },
-  "include": ["src"] // Files to include in compilation
+  "include": ["src", "../api server/src/types/express"] // Files to include in compilation
 }

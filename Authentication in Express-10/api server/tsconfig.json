@@ -20,11 +20,7 @@
     "module": "preserve",
     "noEmit": false,
     "outDir": "dist",
-    /* Paths */
-    "baseUrl": "./src",
-    "paths": {
-      "#*": ["*"]
-    }
+    "rootDir": "./src"
   },
   "include": ["src"]
 }
