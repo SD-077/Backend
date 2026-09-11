@@ -6,6 +6,7 @@ declare global {
         id: string;
         roles: string[];
       };
+      post?: InstanceType<typeof Post>;
     }
   }
 }

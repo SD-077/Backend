@@ -5,12 +5,12 @@ import { postSchema } from '#schemas';
 
 const postRoutes = Router();
 
-postRoutes.route('/').get(getAllPosts).post(authenticate, authorize('admin'), validateBody(postSchema), createPost);
+postRoutes.route('/').get(getAllPosts).post(authenticate, validateBody(postSchema), createPost);
 
 postRoutes
   .route('/:id')
   .get(getSinglePost)
-  .put(authenticate, validateBody(postSchema), updatePost)
-  .delete(authenticate, deletePost);
+  .put(authenticate, authorize('self', 'admin'), validateBody(postSchema), updatePost)
+  .delete(authenticate, authorize('self', 'admin'), deletePost);
 
 export default postRoutes;
