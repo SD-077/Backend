@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "mcp-aic-server": {
+      "command": "node",
+      "args": ["/Users/mahmoudkhudairi/Desktop/Backend/chapter-11/mcp-aic-server/dist/app.js"]
+    }
+  }
+}
